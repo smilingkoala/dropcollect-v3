@@ -1,16 +1,16 @@
 // api/collect.js — POST /api/collect
 // Accepts email submissions from the embedded widget
 const { createClient } = require('@supabase/supabase-js');
+const { sendNewSubscriberNotification } = require('./notify');
+const { validateEmail } = require('./validate-email');
+const { runBotProtection, getIP } = require('./bot-protection');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,253}\.[^\s@]{2,}$/;
-
 module.exports = async function handler(req, res) {
-  // CORS — widget runs on third-party sites, must allow all origins
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -21,22 +21,40 @@ module.exports = async function handler(req, res) {
 
   const { id, email } = req.body || {};
 
-  // Basic validation
+  // ── 1. Basic input presence check ───────────────────────
   if (!id || typeof id !== 'string' || !/^[a-z0-9]{4,16}$/.test(id)) {
     return res.status(400).json({ error: 'Invalid collector id.' });
   }
-  if (!email || typeof email !== 'string') {
-    return res.status(400).json({ error: 'Email is required.' });
-  }
-  const cleanEmail = email.trim().toLowerCase();
-  if (!EMAIL_RE.test(cleanEmail) || cleanEmail.length > 320) {
-    return res.status(400).json({ error: 'Invalid email address.' });
+
+  // ── 2. Bot protection ────────────────────────────────────
+  const botCheck = runBotProtection(req, id);
+  if (!botCheck.allowed) {
+    if (botCheck.silent) {
+      // Return fake success to fool bots
+      return res.status(200).json({ success: true });
+    }
+    if (botCheck.retryAfter) {
+      res.setHeader('Retry-After', botCheck.retryAfter);
+    }
+    return res.status(botCheck.statusCode).json({ error: botCheck.error });
   }
 
-  // Fetch collector
+  // ── 3. Email validation ──────────────────────────────────
+  const emailCheck = validateEmail(email);
+  if (!emailCheck.valid) {
+    return res.status(400).json({
+      error: emailCheck.error,
+      // Surface typo suggestion to widget so it can show "Did you mean X?"
+      ...(emailCheck.suggestion && { suggestion: emailCheck.suggestion }),
+    });
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+
+  // ── 4. Fetch collector ───────────────────────────────────
   const { data: collector, error: collErr } = await supabase
     .from('collectors')
-    .select('id, email_cap, tier')
+    .select('id, email_cap, tier, notify_email, headline')
     .eq('id', id)
     .single();
 
@@ -44,7 +62,7 @@ module.exports = async function handler(req, res) {
     return res.status(404).json({ error: 'Collector not found.' });
   }
 
-  // Check capacity
+  // ── 5. Capacity check ────────────────────────────────────
   if (collector.email_cap !== null) {
     const { count, error: countErr } = await supabase
       .from('emails')
@@ -52,14 +70,11 @@ module.exports = async function handler(req, res) {
       .eq('collector_id', id);
 
     if (!countErr && count >= collector.email_cap) {
-      return res.status(429).json({
-        error: 'capacity_reached',
-        message: "This collector has reached its email cap.",
-      });
+      return res.status(429).json({ error: 'capacity_reached' });
     }
   }
 
-  // Check for duplicate
+  // ── 6. Duplicate check ───────────────────────────────────
   const { data: existing } = await supabase
     .from('emails')
     .select('id')
@@ -68,19 +83,15 @@ module.exports = async function handler(req, res) {
     .maybeSingle();
 
   if (existing) {
-    return res.status(409).json({
-      error: 'already_subscribed',
-      message: 'This email is already on the list.',
-    });
+    return res.status(409).json({ error: 'already_subscribed' });
   }
 
-  // Insert the email
+  // ── 7. Insert ────────────────────────────────────────────
   const { error: insertErr } = await supabase.from('emails').insert({
     collector_id: id,
     email: cleanEmail,
     collected_at: new Date().toISOString(),
-    // Capture IP for abuse detection (stored but not exposed to dashboard)
-    ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress,
+    ip: getIP(req),
   });
 
   if (insertErr) {
@@ -88,5 +99,19 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to save email.' });
   }
 
-  return res.status(201).json({ success: true });
+  // ── 8. Notification (non-blocking) ───────────────────────
+  if (collector.tier !== 'free' && collector.notify_email) {
+    sendNewSubscriberNotification({
+      collectorId: id,
+      newEmail: cleanEmail,
+      notifyEmail: collector.notify_email,
+      headline: collector.headline,
+    });
+  }
+
+  return res.status(201).json({
+    success: true,
+    // Return warning to widget (e.g. role-based address) — not an error, just informational
+    ...(emailCheck.warning && { warning: emailCheck.warning }),
+  });
 };

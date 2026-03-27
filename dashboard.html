@@ -200,6 +200,18 @@
       const styleLabel = c.widget_style === 'card' ? 'Card' : 'Minimal';
       const tierLabel = { free: 'Free', pro: 'Pro', pro_plus: 'Pro Plus' }[c.tier] || c.tier;
 
+      // Render tier badge
+      setTimeout(() => {
+        const badge = document.getElementById('tier-badge');
+        if (badge) {
+          if (c.tier === 'free') {
+            badge.innerHTML = '<button class="btn btn-sm" style="background:var(--accent-pro);color:white;" onclick="startUpgrade()">⚡ Upgrade to Pro</button>';
+          } else {
+            badge.innerHTML = '<span style="font-size:12px;padding:8px 14px;background:rgba(77,255,204,0.1);border:1px solid rgba(77,255,204,0.25);border-radius:var(--radius-sm);color:var(--accent);">✓ ' + tierLabel + '</span>';
+          }
+        }
+      }, 50);
+
       app.innerHTML = `
         <div class="dash-header">
           <div>
@@ -207,9 +219,10 @@
             <div class="dash-title">${c.headline || 'Email Collector'}</div>
             <div class="dash-meta">Created ${formatDateShort(c.created_at)} · ${tierLabel} plan</div>
           </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;" id="dash-actions">
             <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↺ Refresh</button>
             <button class="btn btn-primary btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+            <span id="tier-badge"></span>
           </div>
         </div>
 
@@ -305,6 +318,72 @@
     }
 
     loadDashboard();
+  </script>
+  <!-- Upgrade Modal -->
+  <div id="upgrade-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px;max-width:440px;width:90%;margin:20px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent-pro);margin-bottom:12px;">Upgrade to Pro</div>
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;">Remove the 200-email cap</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:24px;">Get unlimited email collection, real-time notifications, and more for $7/month.</p>
+      <div style="background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:24px;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Notify me at (optional)</div>
+        <input type="email" id="upgrade-email" placeholder="your@email.com" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text);font-family:Syne,sans-serif;font-size:14px;outline:none;">
+        <div style="font-size:12px;color:var(--muted);margin-top:8px;">We'll email you when new subscribers arrive. Required for notifications.</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn" style="background:var(--accent-pro);color:white;flex:1;" onclick="doUpgrade('pro')">Pay $7/month →</button>
+        <button class="btn btn-ghost" onclick="closeUpgrade()">Cancel</button>
+      </div>
+      <div style="text-align:center;margin-top:16px;">
+        <button onclick="doUpgrade('pro_plus')" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline;">Or upgrade to Pro Plus ($19/mo) for team access</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function startUpgrade() {
+      document.getElementById('upgrade-modal').style.display = 'flex';
+    }
+    function closeUpgrade() {
+      document.getElementById('upgrade-modal').style.display = 'none';
+    }
+    async function doUpgrade(tier) {
+      const email = document.getElementById('upgrade-email').value.trim();
+      const btn = document.querySelector('#upgrade-modal .btn[onclick^="doUpgrade"]');
+      btn.textContent = 'Redirecting to Stripe…';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ collector_id: collectorId, tier, notify_email: email }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert('Error: ' + (data.error || 'Could not start checkout'));
+          btn.textContent = 'Pay $7/month →';
+          btn.disabled = false;
+        }
+      } catch(e) {
+        alert('Network error. Try again.');
+        btn.textContent = 'Pay $7/month →';
+        btn.disabled = false;
+      }
+    }
+
+    // Show success message if returning from Stripe
+    const urlP = new URLSearchParams(location.search);
+    if (urlP.get('upgraded') === '1') {
+      setTimeout(() => {
+        const bar = document.createElement('div');
+        bar.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(77,255,204,0.12);border:1px solid rgba(77,255,204,0.3);border-radius:10px;padding:14px 24px;color:var(--accent);font-weight:700;font-size:14px;z-index:150;';
+        bar.textContent = '🎉 You are now on Pro — unlimited emails activated!';
+        document.body.appendChild(bar);
+        setTimeout(() => bar.remove(), 5000);
+      }, 500);
+    }
   </script>
 </body>
 </html>

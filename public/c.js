@@ -83,24 +83,30 @@
     container.style.setProperty('--dc-color', btnColor);
     container.style.setProperty('--dc-btn-text', btnTextColor(btnColor));
 
+    // Honeypot field — hidden from humans, bots fill it
+    const honeypotStyle = 'position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;width:0;pointer-events:none;tab-index:-1;';
+    const honeypot = `<input type="text" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="${honeypotStyle}">`;
+
     if (config.widget_style === 'card') {
       container.innerHTML = `
         <div class="dc-card">
           ${config.headline ? `<div class="dc-headline">${esc(config.headline)}</div>` : ''}
           ${config.subheadline ? `<div class="dc-sub">${esc(config.subheadline)}</div>` : ''}
+          ${honeypot}
           <div class="dc-row">
-            <input class="dc-input" type="email" placeholder="your@email.com" aria-label="Email address">
+            <input class="dc-input" type="email" placeholder="your@email.com" aria-label="Email address" autocomplete="email">
             <button class="dc-btn">${esc(btnText)}</button>
           </div>
-          <div class="dc-msg" role="status"></div>
+          <div class="dc-msg" role="status" aria-live="polite"></div>
         </div>`;
     } else {
       container.innerHTML = `
         <div class="dc-minimal">
-          <input class="dc-input" type="email" placeholder="your@email.com" aria-label="Email address">
+          ${honeypot}
+          <input class="dc-input" type="email" placeholder="your@email.com" aria-label="Email address" autocomplete="email">
           <button class="dc-btn">${esc(btnText)}</button>
         </div>
-        <div class="dc-msg" role="status"></div>`;
+        <div class="dc-msg" role="status" aria-live="polite"></div>`;
     }
 
     const input = container.querySelector('.dc-input');
