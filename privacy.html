@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — DropCollect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#07070f; --surface:#0e0e1c; --card:#141424; --border:rgba(255,255,255,0.07); --accent:#4dffcc; --text:#e2e2ef; --muted:#6b6b99; --radius:12px; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;line-height:1.75;}
+    .bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);background-size:64px 64px;}
+    nav{position:fixed;top:0;left:0;right:0;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;background:rgba(7,7,15,0.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);z-index:100;}
+    .logo{font-size:17px;font-weight:800;color:var(--text);text-decoration:none;}
+    .logo span{color:var(--accent);}
+    nav a.back{color:var(--muted);text-decoration:none;font-size:14px;font-weight:600;}
+    nav a.back:hover{color:var(--text);}
+    main{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:100px 32px 80px;}
+    .doc-label{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--accent);letter-spacing:0.08em;margin-bottom:16px;}
+    h1{font-size:40px;font-weight:800;letter-spacing:-1.5px;margin-bottom:8px;}
+    .updated{font-size:13px;color:var(--muted);margin-bottom:48px;}
+    h2{font-size:19px;font-weight:700;margin:40px 0 12px;padding-top:8px;border-top:1px solid var(--border);}
+    p{font-size:15px;color:#c4c4d8;margin-bottom:14px;}
+    ul{margin:0 0 14px 20px;}
+    li{font-size:15px;color:#c4c4d8;margin-bottom:6px;}
+    strong{color:var(--text);}
+    a{color:var(--accent);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+    .highlight{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin:20px 0;}
+    .highlight p{margin:0;font-size:14px;}
+    footer{border-top:1px solid var(--border);padding:32px;text-align:center;color:var(--muted);font-size:13px;position:relative;z-index:1;}
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <nav>
+    <a href="/" class="logo">Drop<span>Collect</span></a>
+    <a href="/" class="back">← Home</a>
+  </nav>
+
+  <main>
+    <div class="doc-label">LEGAL / PRIVACY</div>
+    <h1>Privacy Policy</h1>
+    <div class="updated">Last updated: March 2025 · Effective immediately</div>
+
+    <div class="highlight">
+      <p><strong>Plain English summary:</strong> DropCollect stores email addresses that visitors submit through our widgets. Both the collector owner and DropCollect (the platform) have access to this data. We never sell it, never use it for advertising, and we'll delete it on request. If you submitted your email through a widget on someone's website, you can contact us to remove it.</p>
+    </div>
+
+    <h2>1. Who we are</h2>
+    <p>DropCollect is an email collection platform. When you use DropCollect — either as a collector owner (someone who generates a widget) or as a subscriber (someone who fills out a widget on another site) — this policy applies to you.</p>
+    <p>For GDPR purposes: DropCollect is both a <strong>data controller</strong> (for collector owner data) and a <strong>data processor</strong> (for subscriber emails collected on behalf of collector owners).</p>
+    <p>Contact us: <a href="mailto:privacy@dropcollect.io">privacy@dropcollect.io</a></p>
+
+    <h2>2. What data we collect</h2>
+    <p><strong>From collector owners (people who generate widgets):</strong></p>
+    <ul>
+      <li>Email address (optional, provided voluntarily at widget creation)</li>
+      <li>Widget configuration — headline, button color, style preferences</li>
+      <li>Payment information — processed by Lemon Squeezy, we never see card details</li>
+      <li>IP address at the time of collector creation</li>
+    </ul>
+    <p><strong>From subscribers (people who fill out a widget):</strong></p>
+    <ul>
+      <li>Email address submitted through the widget</li>
+      <li>Timestamp of submission</li>
+      <li>IP address (stored for abuse prevention, not displayed in dashboards)</li>
+    </ul>
+    <p><strong>Automatically collected:</strong></p>
+    <ul>
+      <li>Basic server logs (request timestamps, response codes)</li>
+      <li>No cookies, no tracking pixels, no analytics scripts</li>
+    </ul>
+
+    <h2>3. Who can see your data</h2>
+    <p><strong>Collector owners</strong> can see every email submitted to their collector via their private dashboard URL. They cannot see submissions to other collectors.</p>
+    <p><strong>DropCollect (us)</strong> has access to all data stored on the platform for the purposes of operating the service, preventing abuse, responding to legal requests, and contacting users about their accounts. We access individual collector data only when required for support, abuse investigation, or legal compliance.</p>
+    <p><strong>Third parties:</strong> We share data with the following sub-processors only:</p>
+    <ul>
+      <li><strong>Supabase</strong> — database hosting (Postgres). Data is stored in the region selected at collector creation.</li>
+      <li><strong>Vercel</strong> — application hosting and serverless functions.</li>
+      <li><strong>Resend</strong> — transactional email delivery (notification emails only).</li>
+      <li><strong>Lemon Squeezy</strong> — payment processing for Pro/Pro Plus upgrades.</li>
+    </ul>
+    <p>We do not sell data. We do not share data with advertisers. We do not use subscriber emails for any purpose other than storing them for the collector owner.</p>
+
+    <h2>4. How we use data</h2>
+    <ul>
+      <li>To provide the core service — storing and displaying collected emails to the collector owner</li>
+      <li>To send email notifications (Pro feature, opt-in)</li>
+      <li>To contact collector owners about their account, upgrades, or service changes</li>
+      <li>To detect and prevent spam, bot submissions, and abuse</li>
+      <li>To comply with legal obligations</li>
+    </ul>
+    <p>We do <strong>not</strong> use subscriber emails to send marketing, build audience profiles, or train AI models.</p>
+
+    <h2>5. Data retention</h2>
+    <p>Subscriber emails are retained as long as the collector exists. Collector owners can delete their collector and all associated emails at any time by contacting us at <a href="mailto:privacy@dropcollect.io">privacy@dropcollect.io</a>.</p>
+    <p>We are building self-serve deletion into the dashboard — until then, deletion requests are processed within 72 hours.</p>
+
+    <h2>6. Your rights (GDPR / CCPA)</h2>
+    <p>If you are in the EU, UK, or California, you have the right to:</p>
+    <ul>
+      <li><strong>Access</strong> — request a copy of your data</li>
+      <li><strong>Deletion</strong> — request your email be removed from any collector</li>
+      <li><strong>Correction</strong> — request correction of inaccurate data</li>
+      <li><strong>Portability</strong> — receive your data in a machine-readable format</li>
+      <li><strong>Objection</strong> — object to processing in certain circumstances</li>
+    </ul>
+    <p>To exercise any of these rights, email <a href="mailto:privacy@dropcollect.io">privacy@dropcollect.io</a> with the subject line "Privacy Request" and include the email address you want to look up. We will respond within 30 days.</p>
+
+    <h2>7. Security</h2>
+    <p>Subscriber data is stored in a Postgres database with row-level security. Each collector's data is isolated — no collector owner can access another's data. All data is transmitted over HTTPS. Dashboard URLs act as access tokens — treat yours like a password.</p>
+    <p>We recommend collector owners do not share their dashboard URL publicly.</p>
+
+    <h2>8. Children's privacy</h2>
+    <p>DropCollect is not directed at children under 13. We do not knowingly collect personal data from children. If you believe a child has submitted data through a widget, contact us and we will delete it promptly.</p>
+
+    <h2>9. Changes to this policy</h2>
+    <p>We may update this policy. Material changes will be communicated to collector owners who have provided an email address. Continued use of the platform after changes constitutes acceptance.</p>
+
+    <h2>10. Contact</h2>
+    <p>For any privacy questions or requests: <a href="mailto:privacy@dropcollect.io">privacy@dropcollect.io</a></p>
+    <p>We aim to respond to all privacy inquiries within 5 business days.</p>
+  </main>
+
+  <footer>
+    © 2025 DropCollect · <a href="/">Home</a> · <a href="/privacy.html">Privacy</a>
+  </footer>
+</body>
+</html>

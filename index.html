@@ -385,6 +385,11 @@
           <div class="panel-h">Choose a plan &amp; generate</div>
           <div class="panel-sub">Pick your tier, review the live preview, then click generate.</div>
 
+          <div class="fg" style="margin-bottom:24px;">
+            <label>Your Email <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional — to recover your dashboard URL later)</span></label>
+            <input type="text" id="f-owner-email" placeholder="you@email.com" style="max-width:380px;">
+          </div>
+
           <div class="tiers">
             <button class="tier-btn sel" data-tier="free" onclick="pickTier(this)"><span class="dot"></span>Free</button>
             <button class="tier-btn" data-tier="pro" onclick="pickTier(this)"><span class="dot"></span>Pro — $7/mo</button>
@@ -524,7 +529,7 @@
   </main>
 
   <footer>
-    <p>© 2025 DropCollect &nbsp;·&nbsp; <a href="/dashboard.html">Dashboard</a> &nbsp;·&nbsp; Built for founders who just want to collect emails.</p>
+    <p>© 2025 DropCollect &nbsp;·&nbsp; <a href="/dashboard.html">Dashboard</a> &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a> &nbsp;·&nbsp; Built for founders who just want to collect emails.</p>
   </footer>
 
   <script>
@@ -598,6 +603,7 @@
             buttonLabel: document.getElementById('f-btnlabel').value || 'Subscribe',
             buttonColor: curColor,
             tier: curTier,
+            ownerEmail: document.getElementById('f-owner-email')?.value?.trim() || '',
           }),
         });
         const d = await res.json();

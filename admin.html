@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — DropCollect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07070f; --surface: #0e0e1c; --card: #141424;
+      --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+      --accent: #4dffcc; --accent-dim: rgba(77,255,204,0.1);
+      --accent-pro: #ff5fa0; --accent-plus: #a78bfa;
+      --text: #e2e2ef; --muted: #6b6b99;
+      --red: #ef4444; --radius: 12px; --radius-sm: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
+    .bg-grid { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px); background-size: 64px 64px; }
+    main { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 80px 32px; }
+
+    /* Auth gate */
+    .auth-gate { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 48px; width: 100%; max-width: 400px; text-align: center; }
+    .auth-icon { font-size: 40px; margin-bottom: 20px; }
+    .auth-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .auth-box p { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+    .auth-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 14px; outline: none; text-align: center; letter-spacing: 0.1em; transition: border-color 0.2s; margin-bottom: 14px; }
+    .auth-input:focus { border-color: var(--accent); }
+    .auth-err { color: var(--red); font-size: 13px; margin-bottom: 12px; min-height: 18px; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: var(--radius-sm); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; border: none; outline: none; }
+    .btn-primary { background: var(--accent); color: var(--bg); width: 100%; justify-content: center; }
+    .btn-primary:hover { background: #6fffda; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--border-hover); color: var(--text); }
+    .btn-sm { padding: 7px 14px; font-size: 12px; }
+    .btn-danger { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); color: var(--red); }
+    .btn-danger:hover { background: rgba(239,68,68,0.2); }
+
+    /* Nav */
+    .admin-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; flex-wrap: wrap; gap: 16px; }
+    .admin-logo { font-size: 18px; font-weight: 800; }
+    .admin-logo span { color: var(--accent); }
+    .admin-logo small { font-size: 11px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: var(--red); padding: 2px 8px; border-radius: 4px; margin-left: 8px; font-weight: 700; letter-spacing: 0.08em; }
+
+    /* Stats bar */
+    .stats-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 32px; }
+    .stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+    .stat-val { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    /* Filters */
+    .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-input { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 14px; color: var(--text); font-family: 'Syne', sans-serif; font-size: 13px; outline: none; width: 240px; transition: border-color 0.2s; }
+    .filter-input:focus { border-color: var(--accent); }
+    .filter-input::placeholder { color: var(--muted); }
+    .tier-filter { display: flex; gap: 6px; }
+    .tf-btn { padding: 7px 14px; border-radius: 100px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; font-family: 'Syne', sans-serif; }
+    .tf-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+    .tf-btn[data-tier="pro"].active { border-color: var(--accent-pro); color: var(--accent-pro); background: rgba(255,95,160,0.1); }
+    .tf-btn[data-tier="pro_plus"].active { border-color: var(--accent-plus); color: var(--accent-plus); background: rgba(167,139,250,0.1); }
+
+    /* Table */
+    .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .table-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); }
+    .table-title { font-size: 14px; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 11px 20px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.12s; cursor: pointer; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    tbody td { padding: 13px 20px; font-size: 13px; vertical-align: middle; }
+    .mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+    .tier-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+    .tier-free { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+    .tier-pro { background: rgba(255,95,160,0.1); color: var(--accent-pro); border: 1px solid rgba(255,95,160,0.25); }
+    .tier-pro_plus { background: rgba(167,139,250,0.1); color: var(--accent-plus); border: 1px solid rgba(167,139,250,0.25); }
+    .cap-pct { display: flex; align-items: center; gap: 8px; }
+    .mini-bar { width: 48px; height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+    .mini-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+    .empty-row { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+
+    /* Expand row */
+    .expand-row { background: var(--surface); }
+    .expand-inner { padding: 20px 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .expand-field label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 5px; }
+    .expand-field span { font-size: 13px; font-family: 'IBM Plex Mono', monospace; }
+    .expand-emails { padding: 0 24px 20px; }
+    .email-pill { display: inline-block; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 3px 10px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; margin: 3px; }
+
+    /* Spinner */
+    .spinner-wrap { display: flex; align-items: center; justify-content: center; padding: 80px; gap: 14px; color: var(--muted); }
+    .spinner { width: 24px; height: 24px; border: 3px solid rgba(77,255,204,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 900px) {
+      .stats-bar { grid-template-columns: repeat(3, 1fr); }
+      main { padding: 60px 16px; }
+    }
+    @media (max-width: 600px) {
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+      .expand-inner { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <!-- Auth Gate -->
+  <div class="auth-gate" id="auth-gate">
+    <div class="auth-box">
+      <div class="auth-icon">🔐</div>
+      <h2>Admin Access</h2>
+      <p>Enter your admin secret key to continue.</p>
+      <input class="auth-input" type="password" id="auth-input" placeholder="••••••••••••" autocomplete="off">
+      <div class="auth-err" id="auth-err"></div>
+      <button class="btn btn-primary" onclick="doAuth()">Enter</button>
+    </div>
+  </div>
+
+  <!-- Main Admin UI -->
+  <main id="admin-ui" style="display:none;">
+    <div class="admin-nav">
+      <div>
+        <span class="admin-logo">Drop<span>Collect</span> <small>ADMIN</small></span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:12px;color:var(--muted);" id="last-refresh"></span>
+        <button class="btn btn-ghost btn-sm" onclick="loadData()">↺ Refresh</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportAll()">⬇ Export All</button>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-label">Total Collectors</div>
+        <div class="stat-val" id="s-total">—</div>
+        <div class="stat-sub">all time</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Total Emails</div>
+        <div class="stat-val" id="s-emails">—</div>
+        <div class="stat-sub">across all collectors</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Pro Subscribers</div>
+        <div class="stat-val" id="s-pro" style="color:var(--accent-pro);">—</div>
+        <div class="stat-sub">paying customers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">MRR</div>
+        <div class="stat-val" id="s-mrr" style="color:var(--accent);">—</div>
+        <div class="stat-sub">est. monthly revenue</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">With Owner Email</div>
+        <div class="stat-val" id="s-owners">—</div>
+        <div class="stat-sub">reachable users</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <input class="filter-input" id="search" placeholder="Search by ID, email, headline…" oninput="applyFilters()">
+      <div class="tier-filter">
+        <button class="tf-btn active" data-tier="all" onclick="setTierFilter('all', this)">All</button>
+        <button class="tf-btn" data-tier="free" onclick="setTierFilter('free', this)">Free</button>
+        <button class="tf-btn" data-tier="pro" onclick="setTierFilter('pro', this)">Pro</button>
+        <button class="tf-btn" data-tier="pro_plus" onclick="setTierFilter('pro_plus', this)">Pro Plus</button>
+      </div>
+      <div style="margin-left:auto;font-size:13px;color:var(--muted);" id="filter-count"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-head">
+        <div class="table-title">Collectors</div>
+      </div>
+      <div id="table-container">
+        <div class="spinner-wrap"><div class="spinner"></div> Loading…</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const SESSION_KEY = 'dc_admin_key';
+    let allCollectors = [];
+    let emailCounts = {};
+    let tierFilter = 'all';
+    let expandedId = null;
+    let adminKey = '';
+
+    // ── Auth ──────────────────────────────────────────────
+    function doAuth() {
+      const val = document.getElementById('auth-input').value.trim();
+      if (!val) return;
+      adminKey = val;
+      sessionStorage.setItem(SESSION_KEY, val);
+      showAdmin();
+    }
+
+    function logout() {
+      sessionStorage.removeItem(SESSION_KEY);
+      location.reload();
+    }
+
+    document.getElementById('auth-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doAuth();
+    });
+
+    function showAdmin() {
+      document.getElementById('auth-gate').style.display = 'none';
+      document.getElementById('admin-ui').style.display = 'block';
+      loadData();
+    }
+
+    // Check if already authed this session
+    const savedKey = sessionStorage.getItem(SESSION_KEY);
+    if (savedKey) { adminKey = savedKey; showAdmin(); }
+
+    // ── Data Loading ──────────────────────────────────────
+    async function loadData() {
+      document.getElementById('last-refresh').textContent = 'Loading…';
+      try {
+        const res = await fetch('/api/admin/collectors', {
+          headers: { 'x-admin-key': adminKey },
+        });
+        if (res.status === 401) {
+          document.getElementById('auth-err').textContent = 'Invalid admin key.';
+          sessionStorage.removeItem(SESSION_KEY);
+          document.getElementById('auth-gate').style.display = 'flex';
+          document.getElementById('admin-ui').style.display = 'none';
+          return;
+        }
+        const data = await res.json();
+        allCollectors = data.collectors || [];
+        emailCounts = data.emailCounts || {};
+        updateStats();
+        applyFilters();
+        document.getElementById('last-refresh').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+      } catch (e) {
+        document.getElementById('table-container').innerHTML = `<div class="empty-row">Error loading data: ${e.message}</div>`;
+      }
+    }
+
+    // ── Stats ─────────────────────────────────────────────
+    function updateStats() {
+      const total = allCollectors.length;
+      const totalEmails = Object.values(emailCounts).reduce((a, b) => a + b, 0);
+      const pro = allCollectors.filter(c => c.tier === 'pro').length;
+      const proPlus = allCollectors.filter(c => c.tier === 'pro_plus').length;
+      const mrr = (pro * 7) + (proPlus * 19);
+      const withOwner = allCollectors.filter(c => c.owner_email).length;
+
+      document.getElementById('s-total').textContent = total.toLocaleString();
+      document.getElementById('s-emails').textContent = totalEmails.toLocaleString();
+      document.getElementById('s-pro').textContent = (pro + proPlus).toLocaleString();
+      document.getElementById('s-mrr').textContent = '$' + mrr.toLocaleString();
+      document.getElementById('s-owners').textContent = withOwner.toLocaleString();
+    }
+
+    // ── Filters ───────────────────────────────────────────
+    function setTierFilter(tier, el) {
+      tierFilter = tier;
+      document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('search').value.toLowerCase();
+      let filtered = allCollectors;
+      if (tierFilter !== 'all') filtered = filtered.filter(c => c.tier === tierFilter);
+      if (q) filtered = filtered.filter(c =>
+        c.id.includes(q) ||
+        (c.owner_email || '').toLowerCase().includes(q) ||
+        (c.headline || '').toLowerCase().includes(q) ||
+        (c.notify_email || '').toLowerCase().includes(q)
+      );
+      document.getElementById('filter-count').textContent = `${filtered.length} of ${allCollectors.length}`;
+      renderTable(filtered);
+    }
+
+    // ── Table ─────────────────────────────────────────────
+    function renderTable(collectors) {
+      if (!collectors.length) {
+        document.getElementById('table-container').innerHTML = '<div class="empty-row">No collectors match your filters.</div>';
+        return;
+      }
+
+      const rows = collectors.map(c => {
+        const count = emailCounts[c.id] || 0;
+        const cap = c.email_cap;
+        const pct = cap ? Math.min(100, Math.round((count / cap) * 100)) : 100;
+        const fillColor = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f97316' : '#4dffcc';
+        const tierClass = `tier-${c.tier}`;
+        const tierLabel = { free: 'Free', pro: 'Pro', pro_plus: 'Pro+' }[c.tier] || c.tier;
+        const created = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const isExpanded = expandedId === c.id;
+
+        return `
+          <tr onclick="toggleExpand('${c.id}')" title="Click to expand">
+            <td><span class="mono">${c.id}</span></td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(c.headline || '—')}</td>
+            <td><span class="tier-badge ${tierClass}">${tierLabel}</span></td>
+            <td>
+              <div class="cap-pct">
+                <span class="mono">${count}${cap ? '/' + cap : ''}</span>
+                ${cap ? `<div class="mini-bar"><div class="mini-fill" style="width:${pct}%;background:${fillColor};"></div></div>` : '<span style="font-size:11px;color:var(--accent);">∞</span>'}
+              </div>
+            </td>
+            <td class="mono" style="color:var(--muted);">${c.owner_email ? `<span style="color:var(--text);">${esc(c.owner_email)}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+            <td class="mono" style="color:var(--muted);">${created}</td>
+            <td><span style="color:var(--muted);font-size:16px;">${isExpanded ? '▲' : '▼'}</span></td>
+          </tr>
+          ${isExpanded ? expandedRow(c) : ''}
+        `;
+      }).join('');
+
+      document.getElementById('table-container').innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Headline</th>
+              <th>Tier</th>
+              <th>Emails</th>
+              <th>Owner Email</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function expandedRow(c) {
+      const upgraded = c.upgraded_at ? new Date(c.upgraded_at).toLocaleDateString() : '—';
+      return `
+        <tr class="expand-row">
+          <td colspan="7">
+            <div class="expand-inner">
+              <div class="expand-field">
+                <label>Collector ID</label>
+                <span>${c.id}</span>
+              </div>
+              <div class="expand-field">
+                <label>Widget Style</label>
+                <span>${c.widget_style || '—'}</span>
+              </div>
+              <div class="expand-field">
+                <label>Button Color</label>
+                <span style="display:flex;align-items:center;gap:8px;">
+                  <span style="width:14px;height:14px;border-radius:50%;background:${c.button_color || '#4dffcc'};display:inline-block;"></span>
+                  ${c.button_color || '—'}
+                </span>
+              </div>
+              <div class="expand-field">
+                <label>Owner Email</label>
+                <span>${c.owner_email ? `<a href="mailto:${c.owner_email}" style="color:var(--accent);text-decoration:none;">${c.owner_email}</a>` : '—'}</span>
+              </div>
+              <div class="expand-field">
+                <label>Notify Email (Pro)</label>
+                <span>${c.notify_email || '—'}</span>
+              </div>
+              <div class="expand-field">
+                <label>Upgraded At</label>
+                <span>${upgraded}</span>
+              </div>
+              <div class="expand-field">
+                <label>LS Subscription</label>
+                <span>${c.ls_subscription_id || '—'}</span>
+              </div>
+              <div class="expand-field">
+                <label>Dashboard URL</label>
+                <span><a href="/dashboard.html?id=${c.id}" target="_blank" style="color:var(--accent);text-decoration:none;">Open ↗</a></span>
+              </div>
+              <div class="expand-field">
+                <label>Actions</label>
+                <span style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();copyText('/dashboard.html?id=${c.id}')">Copy URL</button>
+                  <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();exportOne('${c.id}')">Export CSV</button>
+                </span>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function toggleExpand(id) {
+      expandedId = expandedId === id ? null : id;
+      applyFilters();
+    }
+
+    // ── Export ────────────────────────────────────────────
+    async function exportOne(collectorId) {
+      const res = await fetch(`/api/emails?id=${collectorId}`, {
+        headers: { 'x-admin-key': adminKey },
+      });
+      const data = await res.json();
+      const emails = data.emails || [];
+      if (!emails.length) { alert('No emails to export.'); return; }
+      const csv = ['email,collected_at', ...emails.map(e => `"${e.email}","${e.collected_at}"`)].join('\n');
+      downloadCSV(csv, `dropcollect-${collectorId}.csv`);
+    }
+
+    async function exportAll() {
+      const res = await fetch('/api/admin/export', {
+        headers: { 'x-admin-key': adminKey },
+      });
+      const data = await res.json();
+      const rows = [['collector_id', 'owner_email', 'tier', 'email', 'collected_at']];
+      for (const row of data.rows || []) {
+        rows.push([row.collector_id, row.owner_email || '', row.tier, row.email, row.collected_at]);
+      }
+      const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+      downloadCSV(csv, `dropcollect-all-${new Date().toISOString().split('T')[0]}.csv`);
+    }
+
+    function downloadCSV(csv, filename) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = filename;
+      a.click();
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(location.origin + text);
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>

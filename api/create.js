@@ -1,5 +1,4 @@
 // api/create.js — POST /api/create
-// Creates a new collector, returns id, dashboardUrl, snippet
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -9,9 +8,11 @@ const supabase = createClient(
 
 const TIER_CAPS = {
   free: 200,
-  pro: null,       // unlimited
-  pro_plus: null,  // unlimited
+  pro: null,
+  pro_plus: null,
 };
+
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,253}\.[^\s@]{2,}$/;
 
 function randomId(len = 8) {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -22,7 +23,6 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -33,17 +33,19 @@ module.exports = async function handler(req, res) {
     buttonLabel = 'Subscribe',
     buttonColor = '#4dffcc',
     tier = 'free',
+    ownerEmail = '',
   } = req.body || {};
 
-  // Validate tier
   const validTiers = ['free', 'pro', 'pro_plus'];
   const safeTier = validTiers.includes(tier) ? tier : 'free';
-
-  // Validate style
   const safeStyle = ['minimal', 'card'].includes(style) ? style : 'minimal';
-
-  // Sanitize strings
   const safe = (s, max = 120) => String(s || '').slice(0, max).replace(/[<>]/g, '');
+
+  // Validate owner email if provided
+  const cleanOwnerEmail = ownerEmail?.trim().toLowerCase() || null;
+  const safeOwnerEmail = (cleanOwnerEmail && EMAIL_RE.test(cleanOwnerEmail))
+    ? cleanOwnerEmail
+    : null;
 
   const id = randomId(8);
   const emailCap = TIER_CAPS[safeTier];
@@ -57,6 +59,7 @@ module.exports = async function handler(req, res) {
     button_label: safe(buttonLabel, 40),
     button_color: /^#[0-9a-fA-F]{6}$/.test(buttonColor) ? buttonColor : '#4dffcc',
     email_cap: emailCap,
+    owner_email: safeOwnerEmail,   // platform owner can see this
     created_at: new Date().toISOString(),
   });
 

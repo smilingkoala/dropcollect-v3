@@ -1,15 +1,22 @@
 {
   "version": 2,
   "functions": {
-    "api/*.js": {
-      "memory": 256,
-      "maxDuration": 10
-    }
+    "api/*.js": { "memory": 256, "maxDuration": 10 },
+    "api/admin/*.js": { "memory": 256, "maxDuration": 15 }
   },
   "rewrites": [
     { "source": "/c.js", "destination": "/public/c.js" },
-    { "source": "/embed", "destination": "/embed.html" },
-    { "source": "/dashboard", "destination": "/dashboard.html" }
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/api/create", "destination": "/api/create.js" },
+    { "source": "/api/collect", "destination": "/api/collect.js" },
+    { "source": "/api/emails", "destination": "/api/emails.js" },
+    { "source": "/api/config", "destination": "/api/config.js" },
+    { "source": "/api/checkout", "destination": "/api/checkout.js" },
+    { "source": "/api/webhook", "destination": "/api/webhook.js" },
+    { "source": "/api/admin/collectors", "destination": "/api/admin/collectors.js" },
+    { "source": "/api/admin/export", "destination": "/api/admin/export.js" }
   ],
   "headers": [
     {
@@ -24,6 +31,12 @@
       "headers": [
         { "key": "X-Frame-Options", "value": "ALLOWALL" },
         { "key": "Content-Security-Policy", "value": "frame-ancestors *" }
+      ]
+    },
+    {
+      "source": "/admin.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     }
   ]
