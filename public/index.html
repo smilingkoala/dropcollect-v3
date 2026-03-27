@@ -506,7 +506,7 @@
             <li>Email notifications</li>
             <li class="muted-li">Team access</li>
           </ul>
-          <button class="p-cta cta-pro">Upgrade to Pro</button>
+          <button class="p-cta cta-pro" onclick="startCheckout('pro', this)">Upgrade to Pro</button>
         </div>
         <div class="p-card">
           <div class="p-name" style="color:var(--accent-plus)">Pro Plus</div>
@@ -522,7 +522,7 @@
             <li>Team dashboard access</li>
             <li>Webhook integrations</li>
           </ul>
-          <button class="p-cta cta-plus">Upgrade to Pro Plus</button>
+          <button class="p-cta cta-plus" onclick="startCheckout('pro_plus', this)">Upgrade to Pro Plus</button>
         </div>
       </div>
     </section>
@@ -644,6 +644,40 @@
     }
 
     updatePreview();
+
+    async function startCheckout(tier, btn) {
+      const email = prompt('Enter your email (for your receipt and notifications):');
+      if (!email || !email.includes('@')) {
+        if (email !== null) alert('Please enter a valid email address.');
+        return;
+      }
+      const orig = btn.textContent;
+      btn.textContent = 'Redirecting to checkout…';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            collector_id: 'landing',
+            tier,
+            notify_email: email.trim().toLowerCase(),
+          }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert('Error: ' + (data.error || 'Could not start checkout. Check your Lemon Squeezy setup.'));
+          btn.disabled = false;
+          btn.textContent = orig;
+        }
+      } catch(e) {
+        alert('Network error. Please try again.');
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
   </script>
 </body>
 </html>
