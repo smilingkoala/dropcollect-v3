@@ -429,6 +429,14 @@
               </div>
             </div>
           </div>
+          <div style="margin-top:16px;background:#090914;border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <div class="out-header" style="margin-bottom:10px;">
+              <div class="out-title">Google Sites / Notion (iframe version)</div>
+              <button class="copy-btn" onclick="doCopy('out-iframe', this)">Copy</button>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Use this on platforms that block script tags</div>
+            <code id="out-iframe" style="color:var(--text);"></code>
+          </div>
           <p class="out-note">⚠ Bookmark your dashboard URL — it's the only way to view your collected emails. No account needed.</p>
         </div>
       </div>
@@ -603,9 +611,15 @@
     }
 
     function showOutput(d) {
+      const origin = window.location.origin;
       document.getElementById('out-snippet').textContent = d.snippet;
       document.getElementById('out-url').textContent = d.dashboardUrl;
       document.getElementById('out-link').href = d.dashboardUrl;
+      const iframeEl = document.getElementById('out-iframe');
+      if (iframeEl) {
+        const h = curStyle === 'card' ? 220 : 90;
+        iframeEl.textContent = '<iframe src="' + origin + '/embed?id=' + d.id + '" width="100%" height="' + h + '" frameborder="0" scrolling="no"></iframe>';
+      }
       const out = document.getElementById('output');
       out.classList.add('show');
       out.scrollIntoView({ behavior: 'smooth', block: 'start' });

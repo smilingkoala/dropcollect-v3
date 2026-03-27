@@ -1,19 +1,29 @@
 {
   "version": 2,
-  "buildCommand": "npm install",
-  "outputDirectory": ".",
   "functions": {
     "api/*.js": {
       "memory": 256,
       "maxDuration": 10
     }
   },
+  "rewrites": [
+    { "source": "/c.js", "destination": "/public/c.js" },
+    { "source": "/embed", "destination": "/embed.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" }
+  ],
   "headers": [
     {
       "source": "/public/c.js",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    },
+    {
+      "source": "/embed.html",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "ALLOWALL" },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors *" }
       ]
     }
   ]
