@@ -1,27 +1,13 @@
 {
   "version": 2,
+  "outputDirectory": "public",
   "functions": {
     "api/*.js": { "memory": 256, "maxDuration": 10 },
     "api/admin/*.js": { "memory": 256, "maxDuration": 15 }
   },
-  "rewrites": [
-    { "source": "/api/admin/collectors", "destination": "/api/admin/collectors.js" },
-    { "source": "/api/admin/export", "destination": "/api/admin/export.js" },
-    { "source": "/api/create", "destination": "/api/create.js" },
-    { "source": "/api/collect", "destination": "/api/collect.js" },
-    { "source": "/api/emails", "destination": "/api/emails.js" },
-    { "source": "/api/config", "destination": "/api/config.js" },
-    { "source": "/api/checkout", "destination": "/api/checkout.js" },
-    { "source": "/api/webhook", "destination": "/api/webhook.js" },
-    { "source": "/c.js", "destination": "/public/c.js" },
-    { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/", "destination": "/index.html" }
-  ],
   "headers": [
     {
-      "source": "/public/c.js",
+      "source": "/c.js",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Cache-Control", "value": "public, max-age=3600" }
